@@ -9,7 +9,7 @@ RELEASE	?= 0
 
 .PHONY: doc
 
-all:	build-simavr build-tests build-examples build-gbsim
+all:	build-simavr build-tests build-examples build-ledstring
 
 build-simavr:
 	$(MAKE) -C simavr RELEASE=$(RELEASE)
@@ -20,8 +20,8 @@ build-tests: build-simavr
 build-examples: build-simavr
 	$(MAKE) -C examples RELEASE=$(RELEASE)
 
-build-gbsim: build-simavr
-	$(MAKE) -C gbsim RELEASE=$(RELEASE)
+build-ledstring: build-simavr
+	$(MAKE) -C ledstring RELEASE=$(RELEASE)
 
 install:
 	$(MAKE) -C simavr install RELEASE=$(RELEASE)

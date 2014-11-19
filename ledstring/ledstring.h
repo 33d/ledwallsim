@@ -13,24 +13,45 @@
 		along with gbsim.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include "gb_keypad.h"
+#if !defined(__LEDSTRING_H__)
+#define __LEDSTRING_H__
 
-static const char* irq_names[GB_KEYPAD_COUNT] = {
-		[GB_KEYPAD_UP] = "gc.keypad.up",
-		[GB_KEYPAD_DOWN] = "gc.keypad.down",
-		[GB_KEYPAD_LEFT] = "gc.keypad.left",
-		[GB_KEYPAD_RIGHT] = "gc.keypad.right",
-		[GB_KEYPAD_A] = "gc.keypad.a",
-		[GB_KEYPAD_B] = "gc.keypad.b",
-		[GB_KEYPAD_C] = "gc.keypad.c",
+#include "sim_avr.h"
+#include "sim_irq.h"
+#include <stdint.h>
+
+enum {
+	IRQ_PCD8544_SPI_IN = 0,
+	IRQ_PCD8544_DC,
+	IRQ_PCD8544_CS,
+	IRQ_PCD8544_RST,
 };
 
-void gb_keypad_press(gb_keypad_t* keypad, int key, int state) {
-	avr_raise_irq(keypad->irq + key, state);
-}
+enum {
+	PCD8544_MODE_BLANK = 0,
+	PCD8544_MODE_ALL_ON,
+	PCD8544_MODE_NORMAL,
+	PCD8544_MODE_INVERSE
+};
 
-void gb_keypad_init(avr_t* avr, gb_keypad_t* keypad) {
-	keypad->avr = avr;
-	keypad->irq = avr_alloc_irq(&avr->irq_pool, 0, GB_KEYPAD_COUNT, irq_names);
-}
+typedef struct pcd8544_t {
+	avr_irq_t* irq;
+	uint8_t ram[84*6];
+	int dc;
+	int cs;
+	int rst;
+	int horizontal_addressing;
+	int extended;
+	int active;
+	int x;
+	int y;
+	int init_reset_state;
+	int vop;
+	int mode;
+	int updated;
+	const char* error;
+} pcd8544_t;
+
+void ledstring_init(struct avr_t* avr, pcd8544_t* p);
+
+#endif

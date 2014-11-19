@@ -35,8 +35,7 @@ include ${simavr}/Makefile.common
 board = ${OBJ}/${target}.elf
 
 ${board} : ${OBJ}/sdl_display.o
-${board} : ${OBJ}/pcd8544.o
-${board} : ${OBJ}/gb_keypad.o
+${board} : ${OBJ}/ledstring.o
 ${board} : ${OBJ}/${target}.o
 
 ${target}: ${board}

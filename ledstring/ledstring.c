@@ -12,7 +12,7 @@
 		You should have received a copy of the GNU General Public License
 		along with gbsim.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pcd8544.h"
+#include "ledstring.h"
 #include "stdio.h"
 
 #define PCD8544_IRQ_COUNT 4
@@ -125,7 +125,7 @@ static void pcd8544_rst_hook(struct avr_irq_t * irq, uint32_t level, void * para
 		pcd8544_reset(p);
 }
 
-void pcd8544_init(struct avr_t* avr, struct pcd8544_t* p) {
+void ledstring_init(struct avr_t* avr, struct pcd8544_t* p) {
 	p->init_reset_state = 2;
 
 	p->irq = avr_alloc_irq(&avr->irq_pool, 0, PCD8544_IRQ_COUNT, irq_names);
