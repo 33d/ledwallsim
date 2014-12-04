@@ -82,7 +82,7 @@ int display_update(const uint8_t ram[LEDSTRING_ROWS * LEDSTRING_COLS * 3]) {
 	}
 	for (int y = 0; y < LEDSTRING_ROWS; y++) {
 		for (int x = 1; x < LEDSTRING_COLS; x += 2) {
-			src = ram + (((x+1) * LEDSTRING_ROWS - y) * 3);
+			src = ram + (((x+1) * LEDSTRING_ROWS - y - 1) * 3);
 			dest = display.fb + ((y * LEDSTRING_COLS + x) * 3);
 			*(dest + 1) = *src;
 			*(dest + 0) = *(src + 1);
