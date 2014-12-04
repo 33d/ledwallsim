@@ -27,15 +27,7 @@
 #include "ledstring.h"
 #include "sdl_display.h"
 
-typedef struct {
-	SDL_Scancode key;
-	int keypad_key;
-	char port;
-	uint8_t avr_port; // only needed for the pull-up hack
-	int pin;
-} keydef_t;
-
-static pcd8544_t lcd;
+static ledstring_t ledstring;
 static uint8_t lcd_ram[84*6];
 static int lcd_updated;
 static SDL_mutex* lcd_ram_mutex;
@@ -88,10 +80,10 @@ int avr_run_thread(void *ptr) {
 
 		SDL_LockMutex(lcd_ram_mutex);
 
-		if (lcd.updated) {
-			memcpy(lcd_ram, lcd.ram, sizeof(lcd_ram));
+		if (ledstring.updated) {
+			memcpy(lcd_ram, ledstring.ram, sizeof(lcd_ram));
 			lcd_updated = 1;
-			lcd.updated = 0;
+			ledstring.updated = 0;
 		}
 
 		if (quit_flag) {
@@ -168,7 +160,9 @@ int main(int argc, char* argv[]) {
 	avr->frequency = 16000000;
 	avr_load_firmware(avr, &f);
 
-	ledstring_init(avr, &lcd);
+	ledstring_init(avr, &ledstring);
+	avr_connect_irq(avr_io_getirq(avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 6),
+			ledstring.irq + IRQ_LEDSTRING_IN);
 
 	if (display_init()) {
 		lcd_ram_mutex = SDL_CreateMutex();

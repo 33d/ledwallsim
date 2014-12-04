@@ -21,7 +21,7 @@
 int display_init();
 int display_update();
 int display_destroy();
-int display_update(const uint8_t ram[84*6]);
+int display_update(const uint8_t ram[8*12*3]);
 int display_render();
 void display_rate(int rate);
 const char* display_error_message();

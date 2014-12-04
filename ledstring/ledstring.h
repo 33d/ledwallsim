@@ -20,38 +20,41 @@
 #include "sim_irq.h"
 #include <stdint.h>
 
-enum {
-	IRQ_PCD8544_SPI_IN = 0,
-	IRQ_PCD8544_DC,
-	IRQ_PCD8544_CS,
-	IRQ_PCD8544_RST,
-};
+#define LEDSTRING_ROWS 8
+#define LEDSTRING_COLS 12
 
 enum {
-	PCD8544_MODE_BLANK = 0,
-	PCD8544_MODE_ALL_ON,
-	PCD8544_MODE_NORMAL,
-	PCD8544_MODE_INVERSE
+	IRQ_LEDSTRING_IN = 0,
 };
 
-typedef struct pcd8544_t {
+typedef struct ledstring_minmax_t {
+	unsigned int min;
+	unsigned int max;
+} ledstring_minmax_t;
+
+typedef struct ledstring_hl {
+	struct ledstring_minmax_t low;
+	struct ledstring_minmax_t high;
+} ledstring_hl;
+
+typedef struct ledstring_t {
 	avr_irq_t* irq;
-	uint8_t ram[84*6];
-	int dc;
-	int cs;
-	int rst;
-	int horizontal_addressing;
-	int extended;
-	int active;
-	int x;
-	int y;
-	int init_reset_state;
-	int vop;
-	int mode;
+	uint8_t ram[LEDSTRING_ROWS * LEDSTRING_COLS * 3];
+	uint8_t* next;
+	int next_bit;
 	int updated;
-	const char* error;
-} pcd8544_t;
 
-void ledstring_init(struct avr_t* avr, pcd8544_t* p);
+	avr_cycle_count_t last_transition[2];
+	avr_cycle_count_t last_duration[2];
+
+	struct ledstring_hl t0;
+	struct ledstring_hl t1;
+	unsigned int tr_min;
+
+	avr_cycle_count_t *timer;
+	const char* error;
+} ledstring_t;
+
+void ledstring_init(struct avr_t* avr, ledstring_t* p);
 
 #endif

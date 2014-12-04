@@ -17,13 +17,13 @@
 #include <SDL2/SDL.h>
 #include <stdint.h>
 
-#define DISPLAY_SCALE_X 4
-#define DISPLAY_SCALE_Y 4
-#define PIXEL_OFF 0xDE
-#define PIXEL_ON 0x49
+#define DISPLAY_SCALE_X 16
+#define DISPLAY_SCALE_Y 16
+
+#define LEDSTRING_ROWS 8
+#define LEDSTRING_COLS 12
 
 #include "numbers.h"
-SDL_Color numbers_palette_colors[] = { { 0x88, 0x88, 0x88, 0x88 }, { 0xFF, 0xFF, 0xFF, 0xBB }};
 
 struct {
 	SDL_Window* window;
@@ -31,7 +31,7 @@ struct {
 	SDL_Texture* texture;
 	SDL_Texture* numbers_texture;
 	char rate[6];
-	uint8_t fb[84*48];
+	uint8_t fb[LEDSTRING_ROWS * LEDSTRING_COLS * 3];
 } display;
 
 int display_init() {
@@ -40,10 +40,11 @@ int display_init() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		return 0;
 
-	display.window = SDL_CreateWindow("Gamebuino",
+	display.window = SDL_CreateWindow("WS2812",
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
-			84*DISPLAY_SCALE_X, 48*DISPLAY_SCALE_Y, 0);
+			LEDSTRING_COLS*DISPLAY_SCALE_X,
+			LEDSTRING_ROWS*DISPLAY_SCALE_Y, 0);
 	if (display.window == NULL)
 		return 0;
 
@@ -51,17 +52,14 @@ int display_init() {
 			SDL_RENDERER_PRESENTVSYNC);
 
 	display.texture = SDL_CreateTexture(display.renderer,
-			SDL_PIXELFORMAT_RGB332,
-			SDL_TEXTUREACCESS_STREAMING, 84, 48);
+			SDL_PIXELFORMAT_RGB24,
+			SDL_TEXTUREACCESS_STREAMING, LEDSTRING_COLS, LEDSTRING_ROWS);
 	if (display.texture == NULL)
 		return 0;
 
 	SDL_Surface* numbers_surface = SDL_CreateRGBSurfaceFrom((void*) numbers_bitmap,
 			numbers_bitmap_width, numbers_bitmap_height, 1, numbers_bitmap_width / 8,
 			0x80000000, 0x80000000, 0x80000000, 0xFFFFFFFF);
-	SDL_Palette* palette = SDL_AllocPalette(2);
-	SDL_SetPaletteColors(palette, numbers_palette_colors, 0, 2);
-	SDL_SetSurfacePalette(numbers_surface, palette);
 	display.numbers_texture = SDL_CreateTextureFromSurface(display.renderer, numbers_surface);
 	if (display.numbers_texture == 0)
 		return 0;
@@ -70,19 +68,22 @@ int display_init() {
 	return 1;
 }
 
-int display_update(const uint8_t ram[84*6]) {
+int display_update(const uint8_t ram[LEDSTRING_ROWS * LEDSTRING_COLS * 3]) {
 	const uint8_t* src = ram;
 	uint8_t* dest = display.fb;
-	for (int y = 0; y < 6; y++) {
-		for (int x = 0; x < 84; x++) {
-			uint8_t val = *(src++);
-			for (int b = 0; b < (84*8); b += 84) {
-				*(dest + b) = (val & 1) ? PIXEL_ON : PIXEL_OFF;
-				val >>= 1;
-			}
-			++dest;
+	for (int y = 0; y < LEDSTRING_ROWS; y++) {
+		for (int x = 0; x < LEDSTRING_COLS; x += 2) {
+			memcpy(dest + ((y * LEDSTRING_COLS + x) * 3),
+				src + ((x * LEDSTRING_ROWS + y) * 3),
+				3);
 		}
-		dest += 84*7;
+	}
+	for (int y = 0; y < LEDSTRING_ROWS; y++) {
+		for (int x = 1; x < LEDSTRING_COLS; x += 2) {
+			memcpy(dest + ((y * LEDSTRING_COLS + x) * 3),
+				src + (((x+1) * LEDSTRING_ROWS - y) * 3),
+				3);
+		}
 	}
 	return 1;
 }
@@ -101,7 +102,8 @@ static void draw_rate() {
 }
 
 int display_render() {
-	SDL_UpdateTexture(display.texture, NULL, display.fb, 84);
+	SDL_UpdateTexture(display.texture, NULL, display.fb,
+			LEDSTRING_COLS * 3);
 
 	SDL_RenderClear(display.renderer);
 	SDL_RenderCopy(display.renderer, display.texture, NULL, NULL);
