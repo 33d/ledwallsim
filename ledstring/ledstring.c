@@ -35,9 +35,7 @@ static void add_bit(ledstring_t* const p, int high) {
 	if (p->next > p->ram + sizeof(p->ram))
 		return;
 
-	printf("%02X ", *p->next);
 	*(p->next) <<= 1;
-	printf("%02X %d %lx\n", *p->next, high, p->next);
 	if (high)
 		*(p->next) |= 1;
 	++(p->next_bit);
@@ -49,7 +47,6 @@ static void add_bit(ledstring_t* const p, int high) {
 }
 
 static void reset(ledstring_t* const p) {
-	printf("Reset\n");
 	p->next = p->ram;
 	p->next_bit = 0;
 }
@@ -92,9 +89,4 @@ void ledstring_init(struct avr_t* avr, struct ledstring_t* p) {
 	p->t1.low.min = (450 - 150) / cycle_ns + 1;
 	p->t1.low.max = (450 + 150) / cycle_ns;
 	p->tr_min = 50000/cycle_ns + 1;
-
-	fprintf(stderr, "cycles: %d<=T0H<=%d, %d<=T0L<=%d, %d<=T1H<=%d, %d<=T1L<=%d, reset>%d\n",
-			p->t0.high.min, p->t0.high.max, p->t0.low.min, p->t0.low.max,
-			p->t1.high.min, p->t1.high.max, p->t1.low.min, p->t1.low.max,
-			p->tr_min);
 }
