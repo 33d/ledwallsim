@@ -28,6 +28,14 @@
 #define _AVR_IO_H_
 #define __ASSEMBLER__
 #include "avr/iom328p.h"
+/* Hack for a bug in 1.8.0 of avr-libc */
+/* see http://www.avrfreaks.net/forum/34for-crying-out-loud */
+#include <avr/version.h>
+#if __AVR_LIBC_VERSION__==10800UL
+#undef EFUSE_DEFAULT
+#define EFUSE_DEFAULT (0xFF)
+#endif
+
 // instantiate the new core
 #include "sim_megax8.h"
 
