@@ -40,6 +40,7 @@ typedef struct ledstring_hl {
 typedef struct ledstring_t {
 	avr_irq_t* irq;
 	uint8_t ram[LEDSTRING_ROWS * LEDSTRING_COLS * 3];
+	uint8_t buf[LEDSTRING_ROWS * LEDSTRING_COLS * 3];
 	uint8_t* next;
 	int next_bit;
 	int updated;

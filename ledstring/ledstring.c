@@ -32,7 +32,7 @@ static const char* irq_names[ledstring_IRQ_COUNT] = {
 
 static void add_bit(ledstring_t* const p, int high) {
 	// buffer full?
-	if (p->next > p->ram + sizeof(p->ram))
+	if (p->next > p->buf + sizeof(p->buf))
 		return;
 
 	*(p->next) <<= 1;
@@ -47,7 +47,8 @@ static void add_bit(ledstring_t* const p, int high) {
 }
 
 static void reset(ledstring_t* const p) {
-	p->next = p->ram;
+	memcpy(p->ram, p->buf, sizeof(p->buf));
+	p->next = p->buf;
 	p->next_bit = 0;
 }
 
@@ -74,7 +75,7 @@ static void ledstring_in_hook(struct avr_irq_t * irq, uint32_t value, void * par
 void ledstring_init(struct avr_t* avr, struct ledstring_t* p) {
 	p->irq = avr_alloc_irq(&avr->irq_pool, 0, ledstring_IRQ_COUNT, irq_names);
 	avr_irq_register_notify(p->irq + IRQ_LEDSTRING_IN, ledstring_in_hook, p);
-	p->next = p->ram;
+	p->next = p->buf;
 	p->timer = &(avr->cycle);
 	p->updated = 0;
 
